@@ -49,4 +49,15 @@ describe('비동기 호출에 대한 테스트 코드 작성', () => {
 
     cy.get('.skeleton').should('not.exist');
   });
+
+  it('더보기 버튼을 클릭하면 데이터를 더 받아온다.', () => {
+    const apiKey = Cypress.env('api_key');
+    const apiUrl = `${BASE_URL}/movie/popular?language=ko-kr&page=1&api_key=${apiKey}`;
+
+    cy.fetchData(apiUrl);
+
+    cy.get('.btn').click();
+
+    cy.get('li').should('have.length', 40);
+  });
 });
