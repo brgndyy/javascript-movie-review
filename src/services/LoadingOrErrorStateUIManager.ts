@@ -1,33 +1,38 @@
-import tmdbApi from '../api/index';
 import HttpError from '../error/HttpError';
 import isHTMLElement from '../utils/isHTMLElement';
 import Skeleton from '../components/Skeleton/Skeleton';
-import { TMDBApi } from '../api/index';
+import { Api, api } from '../api';
 import removeHTMLElements from '../utils/removeHTMLElements';
 import { checkDataLength } from '../components/ShowMoreButton/eventHandler';
 import createElement from '../utils/createElement';
-import Error from '../components/Error/Error';
-class UIFeedBackManager {
+import ErrorComponent from '../components/ErrorComponent/ErrorComponent';
+import { FetchOption } from '../types/fetch';
+
+// function isHttpError(error: any): error is HttpError {
+//   return error instanceof HttpError && typeof error.status === 'number';
+// }
+
+class LoadingOrErrorStateUIManager {
   api;
 
   SKELETON_LENGTH = 8;
 
   isLoading: boolean = false;
 
-  constructor(api: TMDBApi) {
+  constructor(api: Api) {
     this.api = api;
   }
 
   showErrorComponent(errorComponent: HTMLElement) {
     const main = document.querySelector('main');
-    if (!main) return;
+    if (!isHTMLElement(main)) return;
     main.innerHTML = '';
     main.appendChild(errorComponent);
   }
 
   onErrorChanged(error: HttpError | null) {
-    if (error instanceof HttpError) {
-      const errorComponent = Error(error.status);
+    if (error) {
+      const errorComponent = ErrorComponent(error.status);
 
       this.showErrorComponent(errorComponent);
     }
@@ -35,20 +40,24 @@ class UIFeedBackManager {
 
   /* eslint-disable max-lines-per-function */
   /* eslint-disable  max-depth */
-  async fetchData(url: string, method = 'GET', body = null, headers = {}) {
+  async fetchData(url: string, { method = 'GET', body = null, headers = {} }: Partial<FetchOption>) {
     try {
       this.isLoading = true;
       this.onLoadingChanged();
-      const data = await this.api.sendRequest(url, method, body, headers);
-
+      const data = await this.api.sendRequest(url, { method, body, headers });
       this.checkExistingData(data.results.length);
 
       this.isLoading = false;
       this.resetMovieList();
 
       return data;
-    } catch (error) {
-      if (error instanceof HttpError) {
+    } catch (error: any) {
+      // 여기가 문제 any타입으로 지정하면
+      //  HttpError 클래스 내에
+      // Object.setPrototypeOf(this, new.target.prototype);
+      // 함수가 없어도 실행됨
+      // 하지만 if(error instanceof HttpError) 이렇게 하면 안됨
+      if (error) {
         this.resetMovieList();
         this.onErrorChanged(error);
       }
@@ -56,12 +65,13 @@ class UIFeedBackManager {
   }
 
   checkExistingData(length: number) {
+    removeHTMLElements('.error-text');
     if (!length) {
       checkDataLength(length);
       const section = document.querySelector('.item-view');
       if (!section) return;
-      const h1 = createElement('h1', { textContent: '검색 결과가 존재하지 않습니다', className: 'error-text' });
-      section.appendChild(h1);
+      const errorText = createElement('p', { textContent: '검색 결과가 존재하지 않습니다', className: 'error-text' });
+      section.appendChild(errorText);
     }
   }
 
@@ -90,6 +100,6 @@ class UIFeedBackManager {
   }
 }
 
-const uiFeedBackManager = new UIFeedBackManager(tmdbApi);
+const loadingOrErrorStateUIManager = new LoadingOrErrorStateUIManager(api);
 
-export default uiFeedBackManager;
+export default loadingOrErrorStateUIManager;
