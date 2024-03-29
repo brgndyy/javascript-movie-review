@@ -1,14 +1,18 @@
 import { renderHandler } from './render';
-import { keywordSubmitHandler, reloadPageHandler } from './eventHandler';
-import { mobileToggleButtonHandler, mobileInputEnterHandler } from './eventHandler';
+import {
+  onSearchMovieByKeyword,
+  onReloadPage,
+  onMobileToggleButton,
+  onEnterMovieKeywordMobileInput,
+} from './eventHandler';
 
 function Header() {
   const headerComponent = renderHandler();
-  mobileToggleButtonHandler();
-  keywordSubmitHandler('web');
-  keywordSubmitHandler('mobile');
-  mobileInputEnterHandler();
-  reloadPageHandler();
+  onMobileToggleButton();
+  onSearchMovieByKeyword('web');
+  onSearchMovieByKeyword('mobile');
+  onEnterMovieKeywordMobileInput();
+  onReloadPage();
 
   return headerComponent;
 }

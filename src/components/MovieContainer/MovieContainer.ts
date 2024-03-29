@@ -1,19 +1,20 @@
-import { renderHandler } from './render';
+import { renderMovieContainerComponents } from './render';
 import { API_ENDPOINT, API_OPTION } from '../../constants/api/api';
-import renderMovieItemDetailModalHandler from '../MovieItem/eventHandler';
+import renderMovieItemDetailModal from '../MovieItem/eventHandler';
 import { initializeInfiniteScroll } from '../ShowMoreButton/infiniteScrollHandler';
-import movieFetcherWithLoadingOrErrorState from '../../services/MovieFetcherWithLoadingOrErrorState';
+import movieFetcher from '../../services/MovieFetcher';
 import MovieStorageService from '../../services/MovieStorageService';
 
 async function MovieContainer() {
-  const dataFromServer = await movieFetcherWithLoadingOrErrorState.fetchData(API_ENDPOINT.POPULAR(), {
+  const dataFromServer = await movieFetcher.fetchData(API_ENDPOINT.POPULAR(), {
     headers: API_OPTION.headers,
   });
   const { results } = dataFromServer;
   const data = MovieStorageService.addData(results);
-  renderHandler(data);
+
+  renderMovieContainerComponents(data);
   initializeInfiniteScroll();
-  renderMovieItemDetailModalHandler();
+  renderMovieItemDetailModal();
 }
 
 export default MovieContainer;

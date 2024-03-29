@@ -7,15 +7,18 @@ import isElement from '../../utils/isElement';
 import createElement from '../../utils/createElement';
 import MovieStorageService from '../../services/MovieStorageService';
 
+type NoData = 'max' | 'none';
+
 export const DATA_LENGTH_PER_PAGE = 20;
 
 const MAX_PAGE_NUMBER = 10;
 
-export const renderNoMoreDataText = () => {
+export const renderNoMoreDataText = (type: NoData) => {
   const noMoreText = createElement('h2', {
-    textContent: '데이터가 존재하지 않습니다!',
+    textContent: type === 'max' ? '더 이상 불러올 데이터가 존재하지 않아요!' : '검색 결과가 존재하지 않아요!',
     className: 'no-more-text',
   });
+
   const section = document.querySelector('.item-view');
   if (!isElement(section)) return;
   section.appendChild(noMoreText);
@@ -27,20 +30,26 @@ const observeLastListItem = (observer: IntersectionObserver) => {
   if (lastItem) observer.observe(lastItem);
 };
 
-const isValidUpdatedPageNumber = (updatedPageNumber: number) => {
-  if (updatedPageNumber > MAX_PAGE_NUMBER) {
-    renderNoMoreDataText();
-    return false;
-  }
-  return true;
+const isValidPageNumber = (updatedPageNumber: number): boolean => {
+  return updatedPageNumber <= MAX_PAGE_NUMBER;
+};
+
+const getMoreMovieDataScroll = async (option: ShowMoreButtonOption, keyword: string, updatedPageNumber: number) => {
+  const totalUrl = getTotalApiUrl(option, keyword, updatedPageNumber);
+  const dataResults = await getMovieListByKeywordAndUpdatedPageNumber(totalUrl);
+  const movieListResults = MovieStorageService.addData(dataResults);
+
+  return movieListResults;
 };
 
 const fetchNextPageData = async (option: ShowMoreButtonOption, keyword: string, observer: IntersectionObserver) => {
   const updatedPageNumber = pageManager.increasePage();
-  if (!isValidUpdatedPageNumber(updatedPageNumber)) return;
-  const totalUrl = getTotalApiUrl(option, keyword, updatedPageNumber);
-  const dataResults = await getMovieListByKeywordAndUpdatedPageNumber(totalUrl);
-  const movieListResults = MovieStorageService.addData(dataResults);
+
+  if (!isValidPageNumber(updatedPageNumber)) {
+    renderNoMoreDataText('max');
+    return;
+  }
+  const movieListResults = await getMoreMovieDataScroll(option, keyword, updatedPageNumber);
 
   createMovieItems(movieListResults);
   observeLastListItem(observer);
@@ -54,12 +63,13 @@ const loadMoreMovieData = (
   entry: IntersectionObserverEntry,
 ) => {
   const currentPageNumber = pageManager.getCurrentPage();
+
   if (currentPageNumber <= MAX_PAGE_NUMBER) {
     fetchNextPageData(option, keyword, observer);
     observer.unobserve(entry.target);
   } else {
     observer.disconnect();
-    renderNoMoreDataText();
+    renderNoMoreDataText('max');
   }
 };
 
@@ -79,6 +89,7 @@ const setupInfiniteScroll = (option: ShowMoreButtonOption, keyword: string) => {
 
   const items = document.querySelectorAll('.item-list li');
   const lastItem = items[items.length - 1];
+
   if (lastItem) observer.observe(lastItem);
 };
 

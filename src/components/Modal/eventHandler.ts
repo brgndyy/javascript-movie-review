@@ -9,14 +9,15 @@ const escKeyListener = (e: KeyboardEvent) => {
 const removeModal = () => {
   const modal = document.querySelector('.modal');
   if (!isElement(modal)) return;
+
   modal.classList.remove('modal--open');
   document.body.classList.remove('modal-open');
-
   document.removeEventListener('keydown', escKeyListener);
 };
 
-export const propagationContainer = () => {
+export const onPropagationContainer = () => {
   const modalContainer = document.querySelector('.modal-container');
+
   if (isElement(modalContainer)) {
     modalContainer.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -24,9 +25,10 @@ export const propagationContainer = () => {
   }
 };
 
-export const closeModalHandler = () => {
+export const onCloseModal = () => {
   const dimmer = document.querySelector('.modal-backdrop');
   const modal = document.querySelector('.modal');
+
   if (!isElement(dimmer) || !isElement(modal)) return;
 
   dimmer.addEventListener('click', () => {
@@ -35,16 +37,16 @@ export const closeModalHandler = () => {
   });
 };
 
-export const openModalHandler = () => {
+export const onOpenModal = () => {
   const modal = document.querySelector('.modal');
   if (!isElement(modal)) return;
+
   modal.classList.add('modal--open');
   document.body.classList.add('modal-open');
-
   document.addEventListener('keydown', escKeyListener);
 };
 
-export const closeButtonClickHandler = () => {
+export const onCloseButtonClick = () => {
   const closeButton = document.querySelector('.close-text');
   if (!isElement(closeButton)) return;
 
