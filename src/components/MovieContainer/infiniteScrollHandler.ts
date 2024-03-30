@@ -1,17 +1,23 @@
 import getMovieListByKeywordAndUpdatedPageNumber from '../../services/getMovieListByKeywordAndUpdatedPageNumber';
 import { ShowMoreButtonOption } from '../../types/movie';
-import { getTotalApiUrl } from './eventHandler';
-import { createMovieItems } from '../MovieContainer/render';
+import { createMovieItems } from './render';
 import pageManager from '../../services/PageManager';
 import isElement from '../../utils/isElement';
 import createElement from '../../utils/createElement';
 import MovieStorageService from '../../services/MovieStorageService';
+import { API_ENDPOINT } from '../../constants/api/api';
 
 type NoData = 'max' | 'none';
 
 export const DATA_LENGTH_PER_PAGE = 20;
 
 const MAX_PAGE_NUMBER = 10;
+
+export const getTotalApiUrl = (option: ShowMoreButtonOption, keyword: string, pageNumber: number) => {
+  return option === 'search' && keyword.length > 0
+    ? API_ENDPOINT.SEARCH(keyword, pageNumber)
+    : API_ENDPOINT.POPULAR(pageNumber);
+};
 
 export const renderNoMoreDataText = (type: NoData) => {
   const noMoreText = createElement('h2', {
